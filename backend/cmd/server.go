@@ -4,7 +4,6 @@ import (
 	"log"
 	"os"
 
-	"eyu-delta-force-forum/config"
 	"eyu-delta-force-forum/handlers"
 	"eyu-delta-force-forum/middleware"
 	"eyu-delta-force-forum/models"
