@@ -13,7 +13,7 @@
           <el-input v-model="loginForm.password" type="password" placeholder="请输入密码" prefix-icon="Lock" show-password />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" class="login-button" @click="handleLogin">登录</el-button>
+          <el-button type="primary" class="login-button" @click="handleLogin" :loading="loading">登录</el-button>
         </el-form-item>
       </el-form>
       <div class="login-footer">
@@ -25,6 +25,8 @@
 </template>
 
 <script>
+import { authAPI } from '../services/api';
+
 export default {
   name: 'Login',
   data() {
@@ -40,16 +42,24 @@ export default {
         password: [
           { required: true, message: '请输入密码', trigger: 'blur' }
         ]
-      }
+      },
+      loading: false
     }
   },
   methods: {
-    handleLogin() {
-      this.$refs.loginFormRef.validate((valid) => {
+    async handleLogin() {
+      this.$refs.loginFormRef.validate(async (valid) => {
         if (valid) {
-          // 模拟登录请求
-          this.$message.success('登录成功');
-          this.$router.push('/');
+          this.loading = true;
+          try {
+            await authAPI.login(this.loginForm.username, this.loginForm.password);
+            this.$message.success('登录成功');
+            this.$router.push('/');
+          } catch (error) {
+            this.$message.error(`登录失败: ${error.message}`);
+          } finally {
+            this.loading = false;
+          }
         }
       });
     }
@@ -100,15 +110,43 @@ export default {
   width: 100%;
   padding: 0.8rem;
   font-size: 1rem;
+}
+
+.el-button--primary {
   background: linear-gradient(135deg, #e94560, #c7365f);
   border: none;
   border-radius: 8px;
   transition: all 0.3s ease;
 }
 
-.login-button:hover {
+.el-button--primary:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(233, 69, 96, 0.4);
+}
+
+.el-button--primary.is-loading {
+  background: linear-gradient(135deg, #e94560, #c7365f);
+}
+
+.el-form-item__label {
+  color: #ddd;
+}
+
+.el-input__wrapper {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-color: rgba(233, 69, 96, 0.3);
+}
+
+.el-input__wrapper:hover {
+  box-shadow: 0 0 0 1px rgba(233, 69, 96, 0.5) inset;
+}
+
+.el-input__wrapper.is-focus {
+  box-shadow: 0 0 0 1px rgba(233, 69, 96, 0.5) inset;
+}
+
+.el-input__inner {
+  color: #fff;
 }
 
 .login-footer {

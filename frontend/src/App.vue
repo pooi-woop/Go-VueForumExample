@@ -5,8 +5,18 @@
         <h1 class="app-title">恶雨三角洲行动论坛</h1>
         <div class="header-nav">
           <router-link to="/" class="nav-link">首页</router-link>
-          <router-link to="/login" class="nav-link">登录</router-link>
-          <router-link to="/register" class="nav-link">注册</router-link>
+          
+          <!-- 已登录状态 -->
+          <template v-if="isLoggedIn">
+            <router-link to="/create-post" class="nav-link">发布帖子</router-link>
+            <span class="nav-link logout-link" @click="handleLogout">退出登录</span>
+          </template>
+          
+          <!-- 未登录状态 -->
+          <template v-else>
+            <router-link to="/login" class="nav-link">登录</router-link>
+            <router-link to="/register" class="nav-link">注册</router-link>
+          </template>
         </div>
       </div>
     </header>
@@ -18,6 +28,42 @@
     </footer>
   </div>
 </template>
+
+<script>
+import { authAPI } from './services/api';
+
+export default {
+  name: 'App',
+  data() {
+    return {
+      isLoggedIn: false
+    };
+  },
+  methods: {
+    checkLoginStatus() {
+      const token = localStorage.getItem('auth_token');
+      this.isLoggedIn = !!token;
+    },
+    handleLogout() {
+      authAPI.logout();
+      this.isLoggedIn = false;
+      this.$router.push('/');
+      this.$message.success('退出登录成功');
+    }
+  },
+  mounted() {
+    this.checkLoginStatus();
+  },
+  watch: {
+    $route: {
+      handler() {
+        this.checkLoginStatus();
+      },
+      immediate: true
+    }
+  }
+}
+</script>
 
 <style scoped>
 .app-container {
@@ -63,6 +109,15 @@
 }
 
 .nav-link:hover {
+  background: rgba(233, 69, 96, 0.2);
+  color: #e94560;
+}
+
+.logout-link {
+  cursor: pointer;
+}
+
+.logout-link:hover {
   background: rgba(233, 69, 96, 0.2);
   color: #e94560;
 }

@@ -1,7 +1,8 @@
 package models
 
 import (
-	"gorm.io/driver/sqlite"
+	"eyu-delta-force-forum/config"
+	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
@@ -11,7 +12,8 @@ var DB *gorm.DB
 // InitDB 初始化数据库连接
 func InitDB() error {
 	var err error
-	DB, err = gorm.Open(sqlite.Open("./forum.db"), &gorm.Config{})
+	config.LoadConfig()
+	DB, err = gorm.Open(mysql.Open(config.AppConfig.DatabaseURL), &gorm.Config{})
 	if err != nil {
 		return err
 	}

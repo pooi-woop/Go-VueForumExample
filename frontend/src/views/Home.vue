@@ -7,21 +7,44 @@
     
     <div class="post-list">
       <h3 class="section-title">最新帖子</h3>
-      <div class="posts-grid">
+      
+      <!-- 加载状态 -->
+      <div v-if="loading" class="loading-container">
+        <el-skeleton :rows="3" animated />
+      </div>
+      
+      <!-- 错误状态 -->
+      <div v-else-if="error" class="error-container">
+        <el-alert
+          :title="error"
+          type="error"
+          show-icon
+          :closable="false"
+        />
+        <el-button type="primary" @click="fetchPosts" style="margin-top: 1rem">重试</el-button>
+      </div>
+      
+      <!-- 帖子列表 -->
+      <div v-else class="posts-grid">
         <div v-for="post in posts" :key="post.id" class="post-card">
           <div class="post-header">
             <div class="user-info">
-              <img :src="post.avatar" alt="用户头像" class="user-avatar" />
+              <img :src="post.avatar || 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=anime%20style%20user%20avatar&image_size=square'" alt="用户头像" class="user-avatar" />
               <span class="username">{{ post.username }}</span>
             </div>
-            <span class="post-time">{{ post.time }}</span>
+            <span class="post-time">{{ formatTime(post.created_at) }}</span>
           </div>
           <h4 class="post-title">{{ post.title }}</h4>
           <p class="post-content">{{ post.content }}</p>
           <div class="post-footer">
-            <span class="post-stats">{{ post.views }} 浏览 · {{ post.comments }} 评论</span>
+            <span class="post-stats">{{ post.views }} 浏览 · {{ post.comment_count }} 评论</span>
             <router-link :to="`/post/${post.id}`" class="read-more">阅读更多</router-link>
           </div>
+        </div>
+        
+        <!-- 空状态 -->
+        <div v-if="posts.length === 0" class="empty-container">
+          <el-empty description="暂无帖子" />
         </div>
       </div>
     </div>
@@ -29,43 +52,39 @@
 </template>
 
 <script>
+import { postAPI } from '../services/api';
+
 export default {
   name: 'Home',
   data() {
     return {
-      posts: [
-        {
-          id: 1,
-          title: '三角洲行动新赛季攻略分享',
-          content: '新赛季已经开始，分享一些个人的游戏心得和技巧，希望对大家有所帮助...',
-          username: '战术大师',
-          avatar: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=anime%20style%20male%20soldier%20avatar%20with%20cyberpunk%20elements&image_size=square',
-          time: '2026-02-03 10:00',
-          views: 1234,
-          comments: 56
-        },
-        {
-          id: 2,
-          title: '游戏角色cosplay分享',
-          content: '最近cos了游戏中的角色，大家看看效果如何...',
-          username: '二次元战士',
-          avatar: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=anime%20style%20female%20cosplayer%20avatar&image_size=square',
-          time: '2026-02-03 09:30',
-          views: 892,
-          comments: 34
-        },
-        {
-          id: 3,
-          title: '寻找组队队友',
-          content: '想找几个固定队友一起开黑，有意向的可以留言...',
-          username: '孤独玩家',
-          avatar: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=anime%20style%20male%20gamer%20avatar&image_size=square',
-          time: '2026-02-03 08:45',
-          views: 567,
-          comments: 23
-        }
-      ]
+      posts: [],
+      loading: true,
+      error: null
     }
+  },
+  methods: {
+    async fetchPosts() {
+      this.loading = true;
+      this.error = null;
+      try {
+        const data = await postAPI.getPosts();
+        this.posts = data;
+      } catch (error) {
+        this.error = `获取帖子失败: ${error.message}`;
+        console.error('获取帖子失败:', error);
+      } finally {
+        this.loading = false;
+      }
+    },
+    formatTime(timeString) {
+      if (!timeString) return '';
+      const date = new Date(timeString);
+      return date.toLocaleString();
+    }
+  },
+  mounted() {
+    this.fetchPosts();
   }
 }
 </script>
@@ -108,6 +127,31 @@ export default {
   margin-bottom: 1.5rem;
   border-bottom: 2px solid #e94560;
   padding-bottom: 0.5rem;
+}
+
+.loading-container {
+  background: rgba(22, 33, 62, 0.8);
+  border-radius: 10px;
+  padding: 2rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(233, 69, 96, 0.2);
+}
+
+.error-container {
+  background: rgba(22, 33, 62, 0.8);
+  border-radius: 10px;
+  padding: 2rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(233, 69, 96, 0.2);
+}
+
+.empty-container {
+  background: rgba(22, 33, 62, 0.8);
+  border-radius: 10px;
+  padding: 4rem 2rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(233, 69, 96, 0.2);
+  text-align: center;
 }
 
 .posts-grid {

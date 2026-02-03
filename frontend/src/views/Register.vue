@@ -19,7 +19,7 @@
           <el-input v-model="registerForm.email" type="email" placeholder="请输入邮箱" prefix-icon="Message" />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" class="register-button" @click="handleRegister">注册</el-button>
+          <el-button type="primary" class="register-button" @click="handleRegister" :loading="loading">注册</el-button>
         </el-form-item>
       </el-form>
       <div class="register-footer">
@@ -31,6 +31,8 @@
 </template>
 
 <script>
+import { authAPI } from '../services/api';
+
 export default {
   name: 'Register',
   data() {
@@ -58,7 +60,8 @@ export default {
           { required: true, message: '请输入邮箱', trigger: 'blur' },
           { type: 'email', message: '请输入正确的邮箱格式', trigger: 'blur' }
         ]
-      }
+      },
+      loading: false
     }
   },
   methods: {
@@ -69,12 +72,19 @@ export default {
         callback();
       }
     },
-    handleRegister() {
-      this.$refs.registerFormRef.validate((valid) => {
+    async handleRegister() {
+      this.$refs.registerFormRef.validate(async (valid) => {
         if (valid) {
-          // 模拟注册请求，密码会在后端进行哈希加盐加密
-          this.$message.success('注册成功');
-          this.$router.push('/login');
+          this.loading = true;
+          try {
+            await authAPI.register(this.registerForm.username, this.registerForm.password, this.registerForm.email);
+            this.$message.success('注册成功');
+            this.$router.push('/login');
+          } catch (error) {
+            this.$message.error(`注册失败: ${error.message}`);
+          } finally {
+            this.loading = false;
+          }
         }
       });
     }
@@ -125,15 +135,43 @@ export default {
   width: 100%;
   padding: 0.8rem;
   font-size: 1rem;
+}
+
+.el-button--primary {
   background: linear-gradient(135deg, #e94560, #c7365f);
   border: none;
   border-radius: 8px;
   transition: all 0.3s ease;
 }
 
-.register-button:hover {
+.el-button--primary:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(233, 69, 96, 0.4);
+}
+
+.el-button--primary.is-loading {
+  background: linear-gradient(135deg, #e94560, #c7365f);
+}
+
+.el-form-item__label {
+  color: #ddd;
+}
+
+.el-input__wrapper {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-color: rgba(233, 69, 96, 0.3);
+}
+
+.el-input__wrapper:hover {
+  box-shadow: 0 0 0 1px rgba(233, 69, 96, 0.5) inset;
+}
+
+.el-input__wrapper.is-focus {
+  box-shadow: 0 0 0 1px rgba(233, 69, 96, 0.5) inset;
+}
+
+.el-input__inner {
+  color: #fff;
 }
 
 .register-footer {

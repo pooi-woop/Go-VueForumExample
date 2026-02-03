@@ -6,10 +6,10 @@ import (
 
 // Config 应用配置
 type Config struct {
-	JWTSecret     string
-	DatabaseURL   string
-	ServerPort    string
-	TokenExpiry   int
+	JWTSecret   string
+	DatabaseURL string
+	ServerPort  string
+	TokenExpiry int
 }
 
 // AppConfig 全局配置实例
@@ -18,10 +18,10 @@ var AppConfig Config
 // LoadConfig 加载配置
 func LoadConfig() {
 	AppConfig = Config{
-		JWTSecret:     getEnv("JWT_SECRET", "your-secret-key"),
-		DatabaseURL:   getEnv("DATABASE_URL", "./forum.db"),
-		ServerPort:    getEnv("PORT", "8080"),
-		TokenExpiry:   24, // 24小时
+		JWTSecret:   getEnv("JWT_SECRET", "your-secret-key"),
+		DatabaseURL: getEnv("DATABASE_URL", "root:qweasdzxc@tcp(localhost:3306)/forum?charset=utf8mb4&parseTime=True&loc=Local"),
+		ServerPort:  getEnv("PORT", "8080"),
+		TokenExpiry: 24, // 24小时
 	}
 }
 
